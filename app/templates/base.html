@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Wycenianie opcji amerykańskich</title>
+</head>
+<body>
+    <h1>Wycenianie opcji amerykańskich</h1>
+    <nav>
+    <ul>
+        <li><a href="{{ url_for('routes.bs_model') }}">Bjerksund-Stensland</a></li>
+        <li><a href="{{ url_for('routes.method2') }}">Metoda 2</a></li>
+        <li><a href="{{ url_for('routes.method3') }}">Metoda 3</a></li>
+    </ul>
+</nav>
+
+
+    {% block content %}{% endblock %}
+</body>
+</html>
