@@ -1,5 +1,5 @@
 from flask import Blueprint, render_template
-from library.pricing_methods.bjerksund_stensland import BjerksundStensland
+from library.models.bjerksund_stensland import BjerksundStensland
 import numpy as np
 import matplotlib.pyplot as plt
 import io
