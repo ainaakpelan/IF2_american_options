@@ -1,0 +1,7 @@
+numpy>=1.26
+ipykernel>=6.29
+jupyterlab>=4.0
+nbformat>=5.10
+nbconvert>=7.14
+pytest>=8.0
+pandas>=2.1
