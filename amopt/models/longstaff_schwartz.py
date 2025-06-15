@@ -5,7 +5,9 @@ import numpy as np
 import math
 
 
-def simulate_paths_gbm(S0, r, sigma, corr, T, M, N, seed=None, antithetic=False):
+def simulate_paths_gbm(
+    spot_price, r, sigma, corr, T, n_time_steps, n_paths, seed=None, antithetic=True
+):
     """
     Simulate N paths of a d-dimensional GBM with correlation. Optionally use
     antithetic variates: if antithetic=True, N must be even; we generate N/2
@@ -37,15 +39,17 @@ def simulate_paths_gbm(S0, r, sigma, corr, T, M, N, seed=None, antithetic=False)
     paths : np.ndarray, shape (N, M+1, d)
         Simulated asset‐price paths, including t=0.
     """
-    S0 = np.asarray(S0)
-    sigma = np.asarray(sigma)
+    spot_price = (
+        np.array([spot_price]) if np.isscalar(spot_price) else np.asarray(spot_price)
+    )
+    sigma = np.array([sigma]) if np.isscalar(sigma) else np.asarray(sigma)
     corr = np.asarray(corr)
-    d = len(S0)
+    d = len(spot_price)
 
     if seed is not None:
         np.random.seed(seed)
 
-    dt = T / M
+    dt = T / n_time_steps
     drift = (r - 0.5 * sigma**2) * dt
     vol = sigma * math.sqrt(dt)
 
@@ -53,24 +57,24 @@ def simulate_paths_gbm(S0, r, sigma, corr, T, M, N, seed=None, antithetic=False)
 
     # If antithetic, ensure N is even and generate N/2 draws + negatives
     if antithetic:
-        if N % 2 != 0:
+        if n_paths % 2 != 0:
             raise ValueError("N must be even when antithetic=True")
-        half_N = N // 2
-        paths = np.empty((N, M + 1, d))
-        paths[:, 0, :] = S0
+        half_N = n_paths // 2
+        paths = np.empty((n_paths, n_time_steps + 1, d))
+        paths[:, 0, :] = spot_price
 
-        for t in range(1, M + 1):
+        for t in range(1, n_time_steps + 1):
             Z_half = np.random.normal(size=(half_N, d)) @ L.T  # (half_N, d)
             Z = np.vstack([Z_half, -Z_half])  # (N, d)
             paths[:, t, :] = paths[:, t - 1, :] * np.exp(drift + vol * Z)
     else:
-        paths = np.empty((N, M + 1, d))
-        paths[:, 0, :] = S0
-        for t in range(1, M + 1):
-            Z = np.random.normal(size=(N, d)) @ L.T
+        paths = np.empty((n_paths, n_time_steps + 1, d))
+        paths[:, 0, :] = spot_price
+        for t in range(1, n_time_steps + 1):
+            Z = np.random.normal(size=(n_paths, d)) @ L.T
             paths[:, t, :] = paths[:, t - 1, :] * np.exp(drift + vol * Z)
 
-    return paths
+    return np.transpose(paths, (2, 0, 1))
 
 
 def _build_basis(S: np.ndarray, degree: int = 2) -> np.ndarray:
@@ -99,6 +103,7 @@ def _build_basis(S: np.ndarray, degree: int = 2) -> np.ndarray:
         Total number of columns = 1 + d * degree.
     """
     n, d = S.shape
+    print(n, d)
     cols = [np.ones(n)]  # constant column
     # For each asset j, include all powers j^k for k=1..degree
     for j in range(d):
@@ -214,10 +219,6 @@ def _build_basis_laguerre(S: np.ndarray, K: float, degree: int = 2) -> np.ndarra
         L_mat[:, k] = ((2 * k - 1 - x) * L_prev - (k - 1) * L_prev2) / k
 
     return L_mat
-
-
-import numpy as np
-from itertools import product
 
 
 def generate_multi_indices(d: int, p_max: int):
