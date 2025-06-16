@@ -74,7 +74,7 @@ def simulate_paths_gbm(
             Z = np.random.normal(size=(n_paths, d)) @ L.T
             paths[:, t, :] = paths[:, t - 1, :] * np.exp(drift + vol * Z)
 
-    return np.transpose(paths, (2, 0, 1))
+    return paths
 
 
 def _build_basis(S: np.ndarray, degree: int = 2) -> np.ndarray:

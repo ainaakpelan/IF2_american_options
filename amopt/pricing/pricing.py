@@ -136,7 +136,7 @@ class AmericanOptionPricer:
             The price of the American option.
         """
         return price_option(
-            self.asset_paths,
+            np.transpose(self.asset_paths, (2, 0, 1)),
             self.payoff_func,
             self.spot_price,
             self.risk_free_rate - self.dividend_yield,
