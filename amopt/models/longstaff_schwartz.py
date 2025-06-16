@@ -381,6 +381,7 @@ def _build_basis_weighted_laguerre(
 
 
 def lsm_price_multi(
+    paths,
     S0,
     r,
     sigma,
@@ -433,9 +434,9 @@ def lsm_price_multi(
         basis_fn = lambda S_itm: _build_basis(S_itm, degree=2)
 
     # 1) simulate paths, possibly with antithetic variates
-    paths = simulate_paths_gbm(
-        S0, r, sigma, corr, T, M, N, seed=seed, antithetic=antithetic
-    )
+    # paths = simulate_paths_gbm(
+    #     S0, r, sigma, corr, T, M, N, seed=seed, antithetic=antithetic
+    # )
     dt = T / M
     disc = math.exp(-r * dt)
 

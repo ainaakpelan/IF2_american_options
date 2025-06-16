@@ -95,7 +95,7 @@ def mesh_estimator(asset_price_mesh, payoff_func, vol, rf_rate, dividend_yield, 
 
     # Instant payoff for every point
     instant_payoff = payoff_func(asset_price_mesh)
-
+    instant_payoff = np.reshape(instant_payoff, (b, m))
     # Initialize last column with payoffs
     option_prices[:, -1] = instant_payoff[:, -1]
 
@@ -143,6 +143,7 @@ def path_estimator(
         spot_prices, drift, vol, m - 1, n_paths, max_time
     )
     instant_payoff = payoff_func(new_asset_cloud)
+    instant_payoff = np.reshape(instant_payoff, (n_paths, m))
     option_prices = mesh_estimator(
         asset_price_mesh, payoff_func, vol, rf_rate, dividend_yield, dt
     )

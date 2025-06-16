@@ -1,7 +1,10 @@
 import numpy as np
+import time
 from ..models.bjerksund_stensland import BjerksundStensland
 from ..models.stochastic_mesh import price_option
-from ..models.longstaff_schwartz import lsm_price_multi, simulate_paths_gbm
+from ..models.longstaff_schwartz import simulate_paths_gbm, lsm_price_multi
+
+# from ..models.lsm import lsm_price_multi, simulate_paths_gbm
 
 
 class AmericanOptionPricer:
@@ -31,6 +34,13 @@ class AmericanOptionPricer:
         self.asset_paths = None
         self.seed = seed if seed is not None else np.random.randint(0, 10000)
         self.payoff_func = None
+
+        # Prices placeholder
+        self.lsm_price = None
+        self.smm_mesh_price = None
+        self.smm_path_price = None
+        self.bjs_price = None
+
         # Validate parameters
         try:
             self._validate_parameters()
@@ -108,7 +118,7 @@ class AmericanOptionPricer:
             return None
         if option_type.lower() not in ["call", "put"]:
             raise ValueError("option_type must be 'call' or 'put'")
-
+        start = time.time()
         model = BjerksundStensland(
             self.spot_price,
             self.strike,
@@ -118,10 +128,13 @@ class AmericanOptionPricer:
             self.volatility,
             option_type=option_type.lower(),
         )
+        self.bjs_time = time.time() - start
+        price = model.calculate_price()
+        self.bjs_price = price
 
-        return model.calculate_price()
+        return price
 
-    def stochastic_mesh(self, num_paths=10000):
+    def stochastic_mesh(self, num_paths=100):
         """
         Price an American option using the stochastic mesh method.
 
@@ -135,7 +148,8 @@ class AmericanOptionPricer:
         float
             The price of the American option.
         """
-        return price_option(
+        start = time.time()
+        price = price_option(
             np.transpose(self.asset_paths, (2, 0, 1)),
             self.payoff_func,
             self.spot_price,
@@ -145,10 +159,14 @@ class AmericanOptionPricer:
             self.dividend_yield,
             self.time_to_maturity,
             self.time_to_maturity / len(self.execution_times),
-            num_paths=num_paths,
+            num_paths,
         )
+        self.smm_time = time.time() - start
+        self.smm_mesh_price, self.smm_path_price = price
 
-    def longstaff_schwartz(self, basis_fn=None, num_paths=10000):
+        return price
+
+    def longstaff_schwartz(self, basis_fn=None, num_paths=1000):
         """
         Price an American option using the Longstaff-Schwartz method.
 
@@ -164,7 +182,9 @@ class AmericanOptionPricer:
         float
             The price of the American option.
         """
-        return lsm_price_multi(
+        start = time.time()
+        price = lsm_price_multi(
+            self.asset_paths,
             self.spot_price,
             self.risk_free_rate - self.dividend_yield,
             self.volatility,
@@ -177,3 +197,18 @@ class AmericanOptionPricer:
             self.seed,
             True,
         )
+        self.lsm_time = time.time() - start
+        self.lsm_price = price
+
+        return price
+
+    def full_data(self):
+        return {
+            "smm_mesh_price": self.smm_mesh_price,
+            "smm_path_price": self.smm_path_price,
+            "lsm_price": self.lsm_price,
+            "bjs_price": self.bjs_price,
+            "smm_time": self.smm_time,
+            "lsm_time": self.lsm_time,
+            "bjs_time": self.bjs_time,
+        }
