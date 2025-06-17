@@ -41,6 +41,10 @@ class AmericanOptionPricer:
         self.smm_mesh_price = None
         self.smm_path_price = None
         self.bjs_price = None
+        # Additional data placeholder
+        self.smm_mesh_dict = None
+        self.smm_path_dict = None
+        self.lsm_dict = None
 
         # Validate parameters
         try:
