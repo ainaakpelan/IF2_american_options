@@ -20,6 +20,7 @@ class AmericanOptionPricer:
         corr=None,
         dividend_yield=0.0,
         seed=None,
+        antithetic=True,
     ):
         self.spot_price = np.asarray(spot_price)
         self.strike = strike
@@ -34,7 +35,7 @@ class AmericanOptionPricer:
         self.asset_paths = None
         self.seed = seed if seed is not None else np.random.randint(0, 10000)
         self.payoff_func = None
-
+        self.antithetic = antithetic  # Default to True for antithetic variates
         # Prices placeholder
         self.lsm_price = None
         self.smm_mesh_price = None
@@ -61,6 +62,8 @@ class AmericanOptionPricer:
             self.time_to_maturity,
             len(self.execution_times),
             self.n_paths_mesh,
+            self.seed,
+            self.antithetic
         )
 
     def _validate_parameters(self):
@@ -166,7 +169,7 @@ class AmericanOptionPricer:
 
         return price
 
-    def longstaff_schwartz(self, basis_fn=None, num_paths=1000):
+    def longstaff_schwartz(self, basis_fn=None, num_paths=10000):
         """
         Price an American option using the Longstaff-Schwartz method.
 
@@ -186,7 +189,7 @@ class AmericanOptionPricer:
         price = lsm_price_multi(
             self.asset_paths,
             self.spot_price,
-            self.risk_free_rate - self.dividend_yield,
+            self.risk_free_rate,
             self.volatility,
             self.corr,
             self.time_to_maturity,
@@ -197,6 +200,7 @@ class AmericanOptionPricer:
             self.seed,
             True,
         )
+        
         self.lsm_time = time.time() - start
         self.lsm_price = price
 
