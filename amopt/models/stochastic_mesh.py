@@ -153,7 +153,7 @@ def path_estimator(
     )
     instant_payoff = payoff_func(new_asset_cloud)
     instant_payoff = np.reshape(instant_payoff, (n_paths, m))
-    option_prices = mesh_estimator(
+    option_prices, _ = mesh_estimator(
         asset_price_mesh, payoff_func, vol, rf_rate, dividend_yield, dt
     )
     # Continuation values based on the mesh
