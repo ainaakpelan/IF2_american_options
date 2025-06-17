@@ -63,7 +63,7 @@ class AmericanOptionPricer:
             len(self.execution_times),
             self.n_paths_mesh,
             self.seed,
-            self.antithetic
+            self.antithetic,
         )
 
     def _validate_parameters(self):
@@ -152,7 +152,7 @@ class AmericanOptionPricer:
             The price of the American option.
         """
         start = time.time()
-        price = price_option(
+        low_price, high_price, smm_mesh_dict, smm_path_dict = price_option(
             np.transpose(self.asset_paths, (2, 0, 1)),
             self.payoff_func,
             self.spot_price,
@@ -165,11 +165,12 @@ class AmericanOptionPricer:
             num_paths,
         )
         self.smm_time = time.time() - start
-        self.smm_mesh_price, self.smm_path_price = price
+        self.smm_mesh_price, self.smm_path_price = high_price, low_price
+        self.smm_mesh_dict, self.smm_path_dict = smm_mesh_dict, smm_path_dict
 
-        return price
+        return low_price, high_price
 
-    def longstaff_schwartz(self, basis_fn=None, num_paths=10000):
+    def longstaff_schwartz(self, basis_fn=None, num_paths=1000):
         """
         Price an American option using the Longstaff-Schwartz method.
 
@@ -186,7 +187,7 @@ class AmericanOptionPricer:
             The price of the American option.
         """
         start = time.time()
-        price = lsm_price_multi(
+        price, matrices_dict = lsm_price_multi(
             self.asset_paths,
             self.spot_price,
             self.risk_free_rate,
@@ -200,9 +201,9 @@ class AmericanOptionPricer:
             self.seed,
             True,
         )
-        
         self.lsm_time = time.time() - start
         self.lsm_price = price
+        self.lsm_dict = matrices_dict
 
         return price
 

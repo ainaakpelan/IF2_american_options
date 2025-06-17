@@ -6,7 +6,16 @@ import math
 
 
 def simulate_paths_gbm(
-    spot_price, r, sigma, corr, T, n_time_steps, n_paths, seed=None, antithetic=True
+    spot_price,
+    r,
+    sigma,
+    corr,
+    T,
+    n_time_steps,
+    n_paths,
+    seed=None,
+    antithetic=True,
+    q=0.0,
 ):
     """
     Simulate N paths of a d-dimensional GBM with correlation. Optionally use
@@ -50,7 +59,7 @@ def simulate_paths_gbm(
         np.random.seed(seed)
 
     dt = T / n_time_steps
-    drift = (r - 0.5 * sigma**2) * dt
+    drift = (r - q - 0.5 * sigma**2) * dt
     vol = sigma * math.sqrt(dt)
 
     L = np.linalg.cholesky(corr)
@@ -465,7 +474,14 @@ def lsm_price_multi(
 
         cashflows *= disc
 
-    return cashflows.mean() * disc
+    price = cashflows.mean() * disc
+    matrices_dict = {
+        "continuation_values": continuation,
+        "instant_payoff": intrinsic[itm],
+        "excercise_moments": exercise,
+    }
+
+    return price, matrices_dict
 
 
 def payoff_put(K, idx=0):

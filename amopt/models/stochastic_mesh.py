@@ -90,7 +90,7 @@ def mesh_estimator(asset_price_mesh, payoff_func, vol, rf_rate, dividend_yield, 
     """
     d, b, m = asset_price_mesh.shape
     option_prices = np.zeros((b, m))  # m is the number of time steps including zero
-
+    continuation_values = np.zeros((b, m))
     disc_fact = np.exp(-rf_rate * dt)
 
     # Instant payoff for every point
@@ -120,9 +120,18 @@ def mesh_estimator(asset_price_mesh, payoff_func, vol, rf_rate, dividend_yield, 
                 disc_fact * np.mean(weights * option_prices_next),
                 instant_payoff[j, i],
             )
+            continuation_values[j, i] = disc_fact * np.mean(
+                weights * option_prices_next
+            )
     option_prices[:, 0] = disc_fact * np.mean(option_prices[:, 1])
 
-    return option_prices
+    matrices_dict = {
+        "continuation_values": continuation_values,
+        "instant_payoff": instant_payoff,
+        "excercise_moments": instant_payoff >= continuation_values,
+    }
+
+    return option_prices, matrices_dict
 
 
 def path_estimator(
@@ -179,10 +188,18 @@ def path_estimator(
     # In case of no exercise, set the stopping time to maturity
     stopping_times[~mask.any(axis=1)] = m - 1
 
-    return np.mean(
+    price = np.mean(
         np.exp(-rf_rate * dt * stopping_times)
         * instant_payoff[np.arange(n_paths), stopping_times]
     )
+
+    matrices_dict = {
+        "continuation_values": continuation_values,
+        "instant_payoff": instant_payoff,
+        "excercise_moments": excercise_moments,
+    }
+
+    return price, matrices_dict
 
 
 def price_option(
@@ -200,12 +217,12 @@ def price_option(
     """
     Wrapper of stochastic_mesh function to compute the option price at t=0 using stochastic mesh method.
     """
-    option_prices = mesh_estimator(
+    option_prices, smm_mesh_dict = mesh_estimator(
         asset_price_mesh, payoff_func, vol, rf_rate, dividend_yield, dt
     )
     high_price = option_prices[0, 0]
 
-    low_price = path_estimator(
+    low_price, smm_path_dict = path_estimator(
         asset_price_mesh,
         payoff_func,
         spot_prices,
@@ -218,4 +235,4 @@ def price_option(
         n_paths,
     )
 
-    return low_price, high_price
+    return low_price, high_price, smm_mesh_dict, smm_path_dict
