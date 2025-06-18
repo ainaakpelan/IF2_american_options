@@ -23,10 +23,7 @@
           <a href="{{ url_for('routes.bjerksund_stensland', section='plot3') }}"
              class="sidebar-link {% if section=='plot3' %}active{% endif %}">Błąd względny</a>
         </li>
-        <li>
-          <a href="{{ url_for('routes.bjerksund_stensland', section='plot4') }}"
-             class="sidebar-link {% if section=='plot4' %}active{% endif %}">Efektywność</a>
-        </li>
+
       </ul>
     </nav>
   </aside>
@@ -60,7 +57,22 @@
                 src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
       </head>
       <body>
-
+        <h1>Metoda Bjerksunda–Stenslanda</h1>
+        <p>
+          Analityczna aproksymacja opcji amerykańskiej typu call w metodzie Bjerksund-Stensland opiera się na strategii wykonania z ustaloną, „płaską” barierą cenową.
+          Rozważamy dwa podejścia:
+        </p>
+        <ul>
+          <li>
+            Bariera to ważona średnia dwóch skrajnych przypadków – gdy czas do wygaśnięcia dąży do nieskończoności i do zera.
+          </li>
+          <li>
+            Obliczamy wartość opcji dla różnych poziomów bariery i wybieramy ten, który maksymalizuje cenę.
+          </li>
+        </ul>
+        <p>
+          Pierwsza metoda jest szybsza, ponieważ bariera ma postać zamkniętą, a druga – dokładniejsza dzięki optymalnemu doborowi bariery numerycznie.
+        </p>
         <h2>Problem optymalnego zatrzymania</h2>
         <p>Wartość opcji amerykańskiej o czasie życia \(T\) wynika z optymalnego wyboru momentu wykonania:</p>
         <p>

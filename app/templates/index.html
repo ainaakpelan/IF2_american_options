@@ -35,7 +35,7 @@
             <li>
                 <a href="{{ url_for('routes.comparison') }}"
                    class="{% if request.path.startswith('/comparison') %}active{% endif %}">
-                   Wyniki
+                   Porównanie
                 </a>
             </li>
         </ul>
@@ -61,9 +61,12 @@
         </ul>
 
         <p>
-            Możesz przejść do jednej z metod za pomocą górnego menu, a w zakładce <strong>"Wyniki"</strong> znaleźć ich porównanie
+            Możesz przejść do jednej z metod za pomocą górnego menu, a w zakładce <strong>"Porównanie"</strong> znaleźć ich porównanie
             pod względem wartości opcji, zachowania względem parametrów oraz potencjalnych błędów.
         </p>
+        Link do repozytorium z kodem źródłowym aplikacji, w tym z biblioteką służącą do wyceny:
+        <a href= "https://github.com/ainaakpelan/IF2_american_options"> Repozytorium </a></p>
+        
         {% endblock %}
     </main>
 </body>

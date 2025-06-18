@@ -1,19 +1,42 @@
 {% extends "index.html" %}
 
 {% block content %}
-<h2>Porównanie metod wyceny opcji amerykańskich</h2>
-
-<p>Poniższy wykres przedstawia porównanie wyceny opcji metodą Bjerksund-Stensland (inne metody do uzupełnienia):</p>
-
-<div style="text-align:center; margin-top:2em;">
-    <img src="data:image/png;base64,{{ plot_url }}" alt="Wykres porównania metod" style="max-width: 100%; height: auto; border: 1px solid #ccc; border-radius: 8px;">
+<div style="text-align: center; margin-top: 1em;">
+  <img
+    src="{{ url_for('static', filename='images/comp_call.jpeg') }}"
+    alt="Wykres 1"
+    style="max-width:80%; border:1px solid #ddd; border-radius:8px;"
+  >
 </div>
 
-<p style="margin-top: 2em;">W kolejnych etapach możesz dodać tutaj:</p>
-<ul>
-    <li>Wyniki z metody Longstaff-Schwartz</li>
-    <li>Wyniki z metody Stochastic Mesh</li>
-    <li>Tabelę błędów/wydajności</li>
-    <li>Analizę zgodności metod</li>
-</ul>
+<div style="text-align: center; margin-top: 1em;">
+  <img
+    src="{{ url_for('static', filename='images/comp_blad_wzg.jpeg') }}"
+    alt="Wykres 1"
+    style="max-width:80%; border:1px solid #ddd; border-radius:8px;"
+  >
+</div>
+
+<div style="text-align: center; margin-top: 1em;">
+  <img
+    src="{{ url_for('static', filename='images/comp_put.jpeg') }}"
+    alt="Wykres 1"
+    style="max-width:80%; border:1px solid #ddd; border-radius:8px;"
+  >
+</div>
+
+<div style="text-align: center; margin-top: 1em;">
+  <img
+    src="{{ url_for('static', filename='images/comp.jpeg') }}"
+    alt="Wykres 1"
+    style="max-width:80%; border:1px solid #ddd; border-radius:8px;"
+  >
+</div>
+<div style="text-align: center; margin-top: 1em;">
+  <img
+    src="{{ url_for('static', filename='images/comp2.jpeg') }}"
+    alt="Wykres 1"
+    style="max-width:80%; border:1px solid #ddd; border-radius:8px;"
+  >
+</div>
 {% endblock %}

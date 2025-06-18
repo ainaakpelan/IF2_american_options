@@ -13,11 +13,15 @@
         </li>
         <li>
           <a href="{{ url_for('routes.stochastic_mesh', section='plot') }}"
-             class="sidebar-link {% if section=='plot' %}active{% endif %}">Wykres 1</a>
+             class="sidebar-link {% if section=='plot' %}active{% endif %}">Porównanie z BS</a>
         </li>
         <li>
           <a href="{{ url_for('routes.stochastic_mesh', section='plot2') }}"
-             class="sidebar-link {% if section=='plot' %}active{% endif %}">Wykres 2</a>
+             class="sidebar-link {% if section=='plot2' %}active{% endif %}">Analiza błędu</a>
+        </li>
+        <li>
+          <a href="{{ url_for('routes.stochastic_mesh', section='plot3') }}"
+             class="sidebar-link {% if section=='plot3' %}active{% endif %}">Wydajność</a>
         </li>
       </ul>
     </nav>
@@ -27,32 +31,157 @@
   <section style="flex: 1; background: white; padding: 1.5em;
                   border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
     {% if section == "theory" %}
-      <h2>Teoria – Metoda Stochastic Mesh</h2>
+      <!DOCTYPE html>
+      <html lang="pl">
+      <head>
+        <meta charset="UTF-8">
+        <title>Metoda Stochastic Mesh</title>
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async
+          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+        </script>
+      </head>
+      <body>
+        <h1>Metoda stochastic mesh</h1>
+
         <p>
-            Metoda Stochastic Mesh służy do wyceny opcji amerykańskich i problemów optymalnego zatrzymania poprzez aproksymację wartości kontynuacji
-            z użyciem ważonego grafu ścieżek symulacyjnych.
+          Metoda stochastic mesh (<em>siatki stochastycznej</em>) to probabilistyczna technika numeryczna, która pozwala na wycenę opcji amerykańskich poprzez konstrukcję siatki (<em>mesh</em>) złożonej z możliwych stanów ścieżek cenowych instrumentu bazowego w różnych punktach czasowych.
         </p>
 
         <p>
-            W odróżnieniu od LSM nie opiera się na regresji, ale na obliczaniu oczekiwanych wartości zdyskontowanych wypłat
-            na bazie siatki losowych ścieżek (mesh).
+          Podstawową cechą jest połączenie niezależnie generowanych ścieżek łańcucha Markowa, aby stworzyć siatkę: zamiast polegać na niezależnych ścieżkach generowanych metodami Monte Carlo, tworzy się siatkę stanów, w której każdy węzeł w danym momencie czasu może być osiągnięty z różnych węzłów poprzedniego momentu.
         </p>
 
         <p>
-            Metoda ta dobrze sprawdza się przy ograniczonej liczbie kroków czasowych, ale może być kosztowna obliczeniowo.
+          Punktem wyjściowym jest wygenerowanie <strong>b</strong> niezależnych trajektorii łańcucha Markowa \( X_0, X_1, \dots, X_m = X_T \).<br>
+          Przejścia między stanami są ważone przy pomocy funkcji wag (ang. weight functions), które odzwierciedlają prawdopodobieństwo przejścia. W chwili 0 opcję wyceniamy jak wcześniej, bądź pomijamy porównanie natychmiastowego payoffu z wartością kontynuacji, zależnie od tego, czy dopuszczamy natychmiastowe wykonanie opcji.
         </p>
+        <div style="text-align: center; margin-top: 1em;">
+          <img
+            src="{{ url_for('static', filename='images/gorny.png') }}"
+            alt="Wykres 1"
+            style="max-width:50%; border:1px solid #ddd; border-radius:8px;"
+          >
+        </div>
+
+        <h2>Estymacja wartości opcji</h2>
+
+        <p>
+          Estymacja wartości opcji jest rekurencyjna: podobnie jak w klasycznych metodach (np. finite difference), wycenę przeprowadza się "wstecz" – zaczynając od końca (terminu wygaśnięcia). W każdym węźle porównuje się wartość wewnętrzną opcji (natychmiastowy payoff) z estymatorem zdyskontowanej wartości kontynuacji (wyliczoną na podstawie ważonych przejść). W każdym punkcie podejmuje się decyzję: egzekwować czy kontynuować.
+        </p>
+
+        <h2>Oznaczenia i wzory</h2>
+
+        <ul>
+          <li>\( X_{ij} \) – wartość procesu w \( i \)-tej chwili na \( j \)-tej trajektorii</li>
+          <li>\( \hat{V}_{ij} \) – cena w tym węźle</li>
+        </ul>
+
+        <p>Payoff w chwili \( m \): \( \hat{V}_{mj} = h_m(X_{mj}) \), np. \( h(x) = (x - K)^+ \).</p>
+
+        <p>
+          Rekurencja:<br>
+          \[
+          \hat{V}_{ij} = \max \left\{ h_i(X_{ij}), e^{-r\Delta t} \cdot \frac{1}{b} \sum_{k=1}^{b} W_{jk}^{i} \hat{V}_{i+1,k} \right\}
+          \]
+        </p>
+
+        <p>
+          W "korzeniu":<br>
+          \[
+          \hat{V}_0 = e^{-r\Delta t} \cdot \frac{1}{b} \sum_{k=1}^{b} \hat{V}_{1k}
+          \]
+          lub:<br>
+          \[
+          \hat{V}_0 = \max\left\{ h_0(X_0), e^{-r\Delta t} \cdot \frac{1}{b} \sum_{k=1}^{b} \hat{V}_{1k} \right\}
+          \]
+        </p>
+
+        <h2>Dwa estymatory</h2>
+
+        <p>
+          Estymator powyżej jest <strong>obciążony dodatnio</strong>. Alternatywnie można skonstruować estymator <strong>obciążony ujemnie</strong>:
+        </p>
+
+        <p>
+          Przy znanej funkcji wag \( W_i^k(\cdot) \):<br>
+          \[
+          \hat{C}_i(x) = e^{-r\Delta t} \cdot \frac{1}{b} \sum_{k=1}^{b} W_k^i(x) \hat{V}_{i+1,k}
+          \]
+        </p>
+
+        <p>
+          Następnie generujemy nową trajektorię i stosujemy strategię:
+          \[
+          \hat{\tau} = \min \{ i : h_i(X_i) \geq \hat{C}_i(X_i) \}
+          \]
+          co daje estymator:
+          \[
+          \hat{\nu} = e^{-r \hat{\tau}} h_{\hat{\tau}}(X_{\hat{\tau}})
+          \]
+        </p>
+
+        <h2>Przedziały ufności</h2>
+
+        <p>
+          Według Broadie i Glassermana, można stworzyć przedziały ufności wokół estymatorów i określić, że cena opcji znajduje się w sumie tych dwóch przedziałów. Alternatywą może być uśrednianie estymatorów.
+        </p>
+
+        <h2>Wagi</h2>
+
+        <p>
+          W log-normalnym modelu rynku:<br>
+          \[
+          f(x, y) = \prod_{i=1}^{d} \frac{1}{\sigma y_i \sqrt{\Delta t}} \varphi \left( \frac{\log(y_i / x_i) - (r - \delta - \frac{1}{2} \sigma^2)\Delta t}{\sigma \sqrt{\Delta t}} \right)
+          \]
+          lub – gdy pracujemy na logarytmach:<br>
+          \[
+          f(x, y) = \prod_{i=1}^{d} \frac{1}{\sigma \sqrt{\Delta t}} \varphi \left( \frac{y_i - x_i - (r - \delta - \frac{1}{2} \sigma^2)\Delta t}{\sigma \sqrt{\Delta t}} \right)
+          \]
+        </p>
+
+        <h2>Ograniczenia</h2>
+        <ul>
+          <li>Wysoka złożoność obliczeniowa: \( \mathcal{O}(mb^2) \)</li>
+          <li>Niska precyzja przy małej liczbie trajektorii</li>
+          <li>Wymagana jawna znajomość struktury probabilistycznej procesu ceny</li>
+        </ul>
+        <div style="text-align: center; margin-top: 1em;">
+          <img
+            src="{{ url_for('static', filename='images/artykul.png') }}"
+            alt="Wykres 1"
+            style="max-width:70%; border:1px solid #ddd; border-radius:8px;"
+          >
+        </div>
+        <h2>Uogólnienia</h2>
+        <ul>
+          <li>Wycena opcji wielowymiarowych</li>
+          <li>Łączenie estymatorów z biasem dodatnim i ujemnym</li>
+        </ul>
+        <div style="text-align: center; margin-top: 1em;">
+          <img
+            src="{{ url_for('static', filename='images/dolny.png') }}"
+            alt="Wykres 1"
+            style="max-width:50%; border:1px solid #ddd; border-radius:8px;"
+          >
+        </div>
+      </body>
+      </html>
+
     {% elif section == "plot" %}
       <img 
-        src="{{ url_for('static', filename='images/mesh.jpeg') }}" 
+        src="{{ url_for('static', filename='images/SM_BS.png') }}" 
         alt="Wykres 1" 
         style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
     {% elif section == "plot2" %}
       <img 
-        src="{{ url_for('static', filename='images/comp.jpeg') }}" 
+        src="{{ url_for('static', filename='images/esty_SM.png') }}" 
         alt="Wykres 1" 
         style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
-        <img 
-        src="{{ url_for('static', filename='images/comp2.jpeg') }}" 
+
+    {% elif section == "plot3" %}
+      <img 
+        src="{{ url_for('static', filename='images/wydajnosc.png') }}" 
         alt="Wykres 1" 
         style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
     {% else %}
