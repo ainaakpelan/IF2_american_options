@@ -1,0 +1,49 @@
+{% extends "index.html" %}
+
+{% block content %}
+<div style="display: flex; gap: 2em; align-items: flex-start;">
+
+  <!-- ========== SIDEBAR ========== -->
+  <aside style="width: 200px;">
+    <nav>
+      <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.5em;">
+        <li>
+          <a href="{{ url_for('routes.stochastic_mesh', section='theory') }}"
+             class="sidebar-link {% if section=='theory' %}active{% endif %}">Teoria</a>
+        </li>
+        <li>
+          <a href="{{ url_for('routes.stochastic_mesh', section='plot') }}"
+             class="sidebar-link {% if section=='plot' %}active{% endif %}">Wykres 1</a>
+        </li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- ========== CONTENT ========== -->
+  <section style="flex: 1; background: white; padding: 1.5em;
+                  border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
+    {% if section == "theory" %}
+      <h2>Teoria – Metoda Stochastic Mesh</h2>
+        <p>
+            Metoda Stochastic Mesh służy do wyceny opcji amerykańskich i problemów optymalnego zatrzymania poprzez aproksymację wartości kontynuacji
+            z użyciem ważonego grafu ścieżek symulacyjnych.
+        </p>
+
+        <p>
+            W odróżnieniu od LSM nie opiera się na regresji, ale na obliczaniu oczekiwanych wartości zdyskontowanych wypłat
+            na bazie siatki losowych ścieżek (mesh).
+        </p>
+
+        <p>
+            Metoda ta dobrze sprawdza się przy ograniczonej liczbie kroków czasowych, ale może być kosztowna obliczeniowo.
+        </p>
+    {% elif section == "plot" %}
+      <h2>Wykres 1</h2>
+      <p>(Tu wstaw obrazek lub wykres)</p>
+    {% else %}
+      <p>Wystąpił błąd. Przejdź do innej karty.</p>
+    {% endif %}
+  </section>
+
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Wycena opcji amerykańskich</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <a href="{{ url_for('routes.index') }}" style="color: white; text-decoration: none;">
+            <h1>Wycena opcji amerykańskich</h1>
+        </a>
+    </header>
+
+    <nav>
+        <ul>
+            <li>
+                <a href="{{ url_for('routes.bjerksund_stensland') }}"
+                   class="{% if request.path.startswith('/bjerksund_stensland') %}active{% endif %}">
+                   Bjerksund-Stensland
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('routes.longstaff_schwartz') }}"
+                   class="{% if request.path.startswith('/longstaff_schwartz') %}active{% endif %}">
+                   Longstaff-Schwartz
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('routes.stochastic_mesh') }}"
+                   class="{% if request.path.startswith('/stochastic_mesh') %}active{% endif %}">
+                   Stochastic Mesh
+                </a>
+            </li>
+            <li>
+                <a href="{{ url_for('routes.comparison') }}"
+                   class="{% if request.path.startswith('/comparison') %}active{% endif %}">
+                   Wyniki
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <main>
+        {% block content %}
+        <h2>Witamy w aplikacji do wyceny opcji amerykańskich</h2>
+
+        <p>
+            Ta aplikacja została stworzona w celu porównania różnych metod wyceny <strong>opcji amerykańskich</strong>,
+            które charakteryzują się możliwością wykonania opcji w dowolnym momencie przed terminem wygaśnięcia.
+        </p>
+
+        <p>
+            W ramach aplikacji zaimplementowano trzy podejścia do wyceny:
+        </p>
+
+        <ul>
+            <li><strong>Bjerksund-Stensland</strong> – szybka metoda analityczna oparta na przybliżeniu rozwiązania problemu zatrzymania.</li>
+            <li><strong>Longstaff-Schwartz</strong> – symulacyjna metoda Monte Carlo z regresją wartości kontynuacji.</li>
+            <li><strong>Stochastic Mesh</strong> – metoda bazująca na grafie losowych ścieżek oraz ważonym uśrednianiu wartości kontynuacji.</li>
+        </ul>
+
+        <p>
+            Możesz przejść do jednej z metod za pomocą górnego menu, a w zakładce <strong>"Wyniki"</strong> znaleźć ich porównanie
+            pod względem wartości opcji, zachowania względem parametrów oraz potencjalnych błędów.
+        </p>
+        {% endblock %}
+    </main>
+</body>
+</html>
