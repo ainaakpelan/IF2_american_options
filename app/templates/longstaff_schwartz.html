@@ -12,8 +12,24 @@
              class="sidebar-link {% if section=='theory' %}active{% endif %}">Teoria</a>
         </li>
         <li>
-          <a href="{{ url_for('routes.longstaff_schwartz', section='plot') }}"
-             class="sidebar-link {% if section=='plot' %}active{% endif %}">Wykres 1</a>
+          <a href="{{ url_for('routes.longstaff_schwartz', section='plot1') }}"
+             class="sidebar-link {% if section=='plot1' %}active{% endif %}">Wykres 1</a>
+        </li>
+        <li>
+          <a href="{{ url_for('routes.longstaff_schwartz', section='plot2') }}"
+             class="sidebar-link {% if section=='plot2' %}active{% endif %}">Wykres 2</a>
+        </li>
+        <li>
+          <a href="{{ url_for('routes.longstaff_schwartz', section='plot3') }}"
+             class="sidebar-link {% if section=='plot3' %}active{% endif %}">Wykres 3</a>
+        </li>
+        <li>
+          <a href="{{ url_for('routes.longstaff_schwartz', section='plot4') }}"
+             class="sidebar-link {% if section=='plot4' %}active{% endif %}">Wykres 4</a>
+        </li>
+        <li>
+          <a href="{{ url_for('routes.longstaff_schwartz', section='plot5') }}"
+             class="sidebar-link {% if section=='plot5' %}active{% endif %}">Wykres 5</a>
         </li>
       </ul>
     </nav>
@@ -23,11 +39,164 @@
   <section style="flex: 1; background: white; padding: 1.5em;
                   border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
     {% if section == "theory" %}
-      <h2>Teoria – Longstaff-Schwartz</h2>
-      <p>…tu opis teoretyczny…</p>
-    {% elif section == "plot" %}
-      <h2>Wykres 1</h2>
-      <p>(Tu wstaw obrazek lub wykres)</p>
+      <!DOCTYPE html>
+      <html lang="pl">
+      <head>
+        <meta charset="UTF-8">
+        <title>Metoda Longstaff-Schwartz</title>
+
+        <!-- Konfiguracja MathJax: definiujemy delimitery TeX -->
+        <script>
+          window.MathJax = {
+            tex: {
+              inlineMath: [['$', '$'], ['\\(', '\\)']],
+              displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+              fontCache: 'global'
+            }
+          };
+        </script>
+
+        <!-- Polyfill i sam silnik MathJax -->
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async
+                src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+      </head>
+      <body>
+
+      <section>
+       
+      <h2>Snell‐opakowanie i wartość</h2>
+      <p>– Cena opcji amerykańskiej to</p>
+      <div class="math display">
+      $$
+      V(0) = \sup_{\tau \in \mathcal{T}} \mathbb{E}^Q\!\Bigl[\frac{Y(\tau)}{B(\tau)}\Bigr],
+      $$
+      </div>
+      <p>gdzie <span class="math">\(B(t) = \exp\bigl(\int_0^t r_u\,du\bigr)\)</span> jest rachunkiem pieniężnym, a <span class="math">\(\mathcal{T}\)</span> – zbiór czasów zatrzymania.</p>
+      <p>– Snell‐opakowanie <span class="math">\(V(t)\)</span> spełnia rekurencję (dynamic programming):</p>
+      <div class="math display">
+      $$
+      V(t_m) = Y(t_m), \quad
+      V(t_i) = \max\Bigl\{\,Y(t_i),\,\mathbb{E}^Q\bigl[V(t_{i+1})/B(t_{i+1})\mid\mathcal{F}_{t_i}\bigr]\;B(t_i)\Bigr\}.
+      $$
+      </div>
+      <p>Stąd definiujemy <strong>wartość kontynuacji</strong>:</p>
+      <div class="math display">
+      $$
+      C(t_i)
+      = \mathbb{E}^Q\bigl[V(t_{i+1})/B(t_{i+1})\mid\mathcal{F}_{t_i}\bigr] \; B(t_i).
+      $$
+      </div>
+      <p>Wykonujemy opcję, gdy <span class="math">\(Y(t_i) \ge C(t_i)\)</span>.</p>
+
+      <hr>
+
+      <h2>Metoda LSM: oszacowanie warunkowej wartości kontynuacji</h2>
+      <ol>
+        <li>
+          <strong>Symulacja ścieżek</strong><br>
+          Generujemy <span class="math">\(n\)</span> ścieżek cen <span class="math">\(S(t_i,\omega_k)\)</span> pod miarą ryzyka-neutralną <span class="math">\(Q\)</span>.
+        </li>
+        <li>
+          <strong>Oszacowanie regresją</strong>
+          <ul>
+            <li>Dla każdego <span class="math">\(t_i\)</span> zbieramy pary <span class="math">\(\bigl(S(t_i,\omega_k),\,V(t_{i+1},\omega_k)\bigr)\)</span> tylko dla ścieżek “in-the-money” (<span class="math">\(Y>0\)</span>).</li>
+            <li>Przybliżamy <span class="math">\(C(t_i)\)</span> jako liniową kombinację <span class="math">\(M\)</span> <em>funkcji bazowych</em> <span class="math">\(L_j\)</span>:
+              <div class="math display">
+              $$
+              C(t_i)\approx \sum_{j=0}^M \alpha_{ij}\,L_j\bigl(S(t_i)\bigr).
+              $$
+              </div>
+            </li>
+            <li>Współczynniki <span class="math">\(\alpha_{ij}\)</span> wyznaczamy metodą najmniejszych kwadratów regresując <span class="math">\(\frac{V(t_{i+1})}{B(t_{i+1})}\,B(t_i)\)</span> względem <span class="math">\(\{L_j(S(t_i))\}\)</span>.</li>
+          </ul>
+        </li>
+        <li>
+          <strong>Reguła zatrzymania</strong><br>
+          Dla każdej ścieżki w krokach wstecznych:
+          <div class="math display">
+          $$
+          V(t_i,\omega_k) =
+          \begin{cases}
+            Y(t_i,\omega_k), & Y(t_i)\ge \hat C(t_i),\\
+            V(t_{i+1},\omega_k), & Y(t_i)< \hat C(t_i).
+          \end{cases}
+          $$
+          </div>
+        </li>
+        <li>
+          <strong>Ostateczna cena</strong><br>
+          Z symulowanych wartości <span class="math">\(V(0,\omega_k)\)</span> obliczamy średnią:
+          <div class="math display">
+          $$
+          V(0)\approx \frac{1}{n}\sum_k V(0,\omega_k).
+          $$
+          </div>
+        </li>
+      </ol>
+
+      <hr>
+
+      <h2>Wybór funkcji bazowych</h2>
+      <p>Najczęściej używa się wielomianów Laguerre’a, Hermite’a lub zwykłych potęg:</p>
+      <div class="math display">
+      $$
+      L_0(x) = 1,\quad
+      L_1(x) = e^{-x/2}(1 - x),\quad
+      L_2(x) = e^{-x/2}\bigl(2 - 4x + x^2\bigr),\;\dots
+      $$
+      </div>
+      <p>W praktyce wystarcza kilka pierwszych baz (3–5).</p>
+
+      <hr>
+
+      <h2>Własności estymatora</h2>
+      <ul>
+        <li>Przy <span class="math">\(n \to \infty\)</span> i stałym <span class="math">\(M\)</span> estymator LSM konwerguje do wartości optymalnej <strong>od dołu</strong> (brak biasu nadmiarowego).</li>
+        <li>Można wykazać spójność i L²-konwergencję regresji (White 1984).</li>
+      </ul>
+
+      <hr>
+
+      <blockquote>
+        <p><strong>Podsumowanie</strong>: LSM łączy dynamiczne programowanie (Snell‐opakowanie) z symulacją oraz regresją LS do szybkiego i skutecznego wyznaczania optymalnego momentu wykonania amerykańskiej opcji. Wszystkie kroki są zdefiniowane wzorami, kończąc na prostej średniej symulacyjnej.</p>
+      </blockquote>
+
+      </body>
+      </html>
+
+
+    {% elif section == "plot1" %}
+      <img 
+        src="{{ url_for('static', filename='images/dopasowanie.jpeg') }}" 
+        alt="Wykres 1" 
+        style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
+    {% elif section == "plot2" %}
+      <img 
+        src="{{ url_for('static', filename='images/tornado.jpeg') }}" 
+        alt="Wykres 2" 
+        style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
+    {% elif section == "plot3" %}
+      <img 
+        src="{{ url_for('static', filename='images/dop_regresji.jpeg') }}" 
+        alt="Wykres 3" 
+        style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
+    {% elif section == "plot4" %}
+      <img 
+        src="{{ url_for('static', filename='images/ls_sensi.png') }}" 
+        alt="Wykres 4" 
+        style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
+    {% elif section == "plot5" %}
+      <img 
+        src="{{ url_for('static', filename='images/biasLSM.jpeg') }}" 
+        alt="Wykres 4" 
+        style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
+      <img 
+        src="{{ url_for('static', filename='images/bladLSM.jpeg') }}" 
+        alt="Wykres 4" 
+        style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
     {% else %}
       <p>Wystąpił błąd. Przejdź do innej karty.</p>
     {% endif %}
@@ -35,3 +204,4 @@
 
 </div>
 {% endblock %}
+

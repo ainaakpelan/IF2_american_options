@@ -13,7 +13,19 @@
         </li>
         <li>
           <a href="{{ url_for('routes.bjerksund_stensland', section='plot') }}"
-             class="sidebar-link {% if section=='plot' %}active{% endif %}">Wykres 1</a>
+             class="sidebar-link {% if section=='plot' %}active{% endif %}">Heatmapa</a>
+        </li>
+        <li>
+          <a href="{{ url_for('routes.bjerksund_stensland', section='plot2') }}"
+             class="sidebar-link {% if section=='plot2' %}active{% endif %}">Porownanie z BS</a>
+        </li>
+        <li>
+          <a href="{{ url_for('routes.bjerksund_stensland', section='plot3') }}"
+             class="sidebar-link {% if section=='plot3' %}active{% endif %}">Błąd względny</a>
+        </li>
+        <li>
+          <a href="{{ url_for('routes.bjerksund_stensland', section='plot4') }}"
+             class="sidebar-link {% if section=='plot4' %}active{% endif %}">Efektywność</a>
         </li>
       </ul>
     </nav>
@@ -23,19 +35,142 @@
   <section style="flex: 1; background: white; padding: 1.5em;
                   border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05);">
     {% if section == "theory" %}
-      <h2>Teoria – Metoda Bjerksund-Stensland</h2>
+      <!DOCTYPE html>
+      <html lang="pl">
+      <head>
+        <meta charset="UTF-8">
+        <title>Metoda Bjerksunda–Stenslanda</title>
+
+        <!-- Konfiguracja MathJax: definiujemy delimitery TeX -->
+        <script>
+          window.MathJax = {
+            tex: {
+              inlineMath: [['$', '$'], ['\\(', '\\)']],
+              displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+              fontCache: 'global'
+            }
+          };
+        </script>
+
+        <!-- Polyfill i sam silnik MathJax -->
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async
+                src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+      </head>
+      <body>
+
+        <h2>Problem optymalnego zatrzymania</h2>
+        <p>Wartość opcji amerykańskiej o czasie życia \(T\) wynika z optymalnego wyboru momentu wykonania:</p>
         <p>
-            Metoda Bjerksund-Stensland jest analitycznym przybliżeniem wartości amerykańskiej opcji typu call z dywidendą.
-            Została zaprojektowana jako szybka i stosunkowo dokładna alternatywa dla metod numerycznych.
+          \[
+            C^*(S,K,T,r,b,\sigma^2)
+            = \sup_{\tau\in[0,T]} 
+            E^*\bigl[e^{-r\tau}(S_\tau - K)^+\bigr].
+          \]
+        </p>
+        <ul>
+          <li>\(S_\tau\) – cena aktywa w chwili \(\tau\),</li>
+          <li>\(K\) – cena wykonania,</li>
+          <li>\(r\) – stopa wolna od ryzyka,</li>
+          <li>\(b = r - \delta\) – koszt utrzymania aktywa,</li>
+          <li>\(\sigma\) – zmienność,</li>
+          <li>\(\tau\) – czas wykonania (stopping time).</li>
+        </ul>
+
+        <h2>Strategia płaskiej bariery</h2>
+        <p>Zamiast pełnego problemu przyjmujemy strategię z progiem \(X > K\):</p>
+        <p><strong>Reguła wykonania:</strong>
+          \[
+            \tau^*(X) = \inf\{t\in[0,T]\colon S_t \ge X\},
+          \]
+          oznaczająca natychmiastowe wykonanie, gdy \(S_t\) osiągnie \(X\), lub w chwili \(T\), jeśli próg nie zostanie osiągnięty.
         </p>
 
+
+        <h2>Jawna formuła aproksymacji</h2>
         <p>
-            Główne założenia obejmują model rynku bez arbitrażu, log-normalny rozkład cen aktywów oraz możliwość wcześniejszego wykonania opcji.
-            Metoda wykorzystuje wyniki z rozwiązania problemu optymalnego zatrzymania.
+          \[
+          \begin{aligned}
+            C(S,K,T,r,b,\sigma^2;X) &= \alpha(X)\,S^\beta
+              - \alpha(X)\,\varphi(S,T\mid\beta,X,X) \\
+            &\quad + \varphi(S,T\mid1,X,X)
+              - \varphi(S,T\mid1,K,X) \\
+            &\quad - K\,\varphi(S,T\mid0,X,X)
+              + K\,\varphi(S,T\mid0,K,X),
+          \end{aligned}
+          \]
+          gdzie
+          \[
+            \alpha(X)=\frac{X-K}{X^\beta}, 
+            \quad
+            \beta=\tfrac12 - \frac{b}{\sigma^2}
+              + \sqrt{\Bigl(\frac{b}{\sigma^2}-\tfrac12\Bigr)^2 + \frac{2r}{\sigma^2}}>1.
+          \]
         </p>
+
+        <h2>Optymalna bariera \(X\)</h2>
+        <p>
+          \[
+            X^* = \arg\max_{X} C(S,K,T,r,b,\sigma^2;X).
+          \]
+        </p>
+        <p>Praktyczna aproksymacja:</p>
+        <p>
+          \[
+            X_T = B_\infty + \bigl(B_0 - B_\infty\bigr)\bigl(1 - e^{h(T)}\bigr),
+          \]
+          gdzie
+          \[
+            B_0 = \max\!\Bigl(K,\tfrac{r}{r-b}K\Bigr),
+            \quad
+            B_\infty = \tfrac{\beta}{\beta-1}K,
+            \quad
+            h(T) = -\Bigl(bT + \tfrac{2\sigma\sqrt{T}}{\beta-1}\Bigr).
+          \]
+        </p>
+
+        <h2>Transformacja put-call</h2>
+        <p>
+          \[
+            P^*(S,K,T,r,b,\sigma^2)
+            = C^*(K,S,T,r-b,-b,\sigma^2).
+          \]
+        </p>
+
+        <hr>
+
+        <h2>Podsumowanie</h2>
+        <p>
+          Metoda Bjerksunda–Stenslanda upraszcza wycenę opcji amerykańskich do strategii z ustaloną barierą cenową.
+          Dzięki temu uzyskujemy analityczną aproksymację, stanowiącą dolne ograniczenie wartości rzeczywistej opcji,
+          a transformacja put-call pozwala analogicznie wyceniać instrumenty typu put.
+        </p>
+
+      </body>
+      </html>
+
     {% elif section == "plot" %}
-      <h2>Wykres 1</h2>
-      <p>(Tu wstaw obrazek lub wykres)</p>
+      <img 
+        src="{{ url_for('static', filename='images/heat_BS.jpeg') }}" 
+        alt="Wykres 1" 
+        style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
+    {% elif section == "plot2" %}
+      <img 
+        src="{{ url_for('static', filename='images/BSvsBS.jpeg') }}" 
+        alt="Wykres 1" 
+        style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
+    {% elif section == "plot3" %}
+      <img 
+        src="{{ url_for('static', filename='images/BLAD_BS.jpeg') }}" 
+        alt="Wykres 1" 
+        style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
+    {% elif section == "plot4" %}
+      <img 
+        src="{{ url_for('static', filename='images/effectBS.jpeg') }}" 
+        alt="Wykres 1" 
+        style="max-width:100%; border:1px solid #ddd; border-radius:8px; margin-top:1em;">
     {% else %}
       <p>Wystąpił błąd. Przejdź do innej karty.</p>
     {% endif %}
